@@ -45,6 +45,8 @@
 
 #include <vector>
 
+#include "vgaconsole.h"
+
 const char version_str[] =
 #include "version.inc"
   ;
@@ -361,18 +363,28 @@ static bool receive(Device *, MessageTime &msg)
   return true;
 }
 
-static unsigned num_views = 0;
+static void keyevent(unsigned int sc) {
+  sem_wait(&vcpu_sem);
+  MessageInput msg(0x10000, sc);
+  mb.bus_input.send(msg);
+  sem_post(&vcpu_sem);
+}
 
 static bool receive(Device *, MessageConsole &msg)
 {
+  static unsigned num_views = 0;
   switch (msg.type)
     {
     case MessageConsole::TYPE_ALLOC_CLIENT:
       Logging::panic("console: ALLOC_CLIENT not supported.\n");
     case MessageConsole::TYPE_ALLOC_VIEW:
+      if(num_views > 0) {
+        Logging::printf("console: only one view is supported.\n");
+        return false;
+      }
       assert(msg.ptr and msg.regs);
+      vgaInit(msg.ptr + 0x18000, keyevent);
       msg.view = num_views++;
-      Logging::printf("console: ALLOC_VIEW not implemented.\n");
       return true;
     case MessageConsole::TYPE_GET_MODEINFO:
     case MessageConsole::TYPE_GET_FONT:

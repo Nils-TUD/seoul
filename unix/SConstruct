@@ -109,7 +109,7 @@ sources = Glob('*.cc') + [
 if arch == 'x86_32':
 	sources += '../model/intel82576vf.cc'
 
-seoul = env.Program('seoul', sources + halifax, LIBS = ['pthread', 'rt'])
+seoul = env.Program('seoul', sources + halifax, LIBS = ['pthread', 'rt', 'X11'])
 Default(seoul)
 
 # EOF
