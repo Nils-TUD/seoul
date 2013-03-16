@@ -65,7 +65,6 @@ class HostVesa : public StaticReceiver<HostVesa>
     _cpu.tr.ar    = 0x8b;
     _cpu.ss.limit = _cpu.ds.limit = _cpu.es.limit = _cpu.fs.limit = _cpu.gs.limit = _cpu.cs.limit;
     _cpu.tr.limit = _cpu.ld.limit = _cpu.gd.limit = _cpu.id.limit = 0xffff;
-    _cpu.set_header(EXCEPTION_WORDS, 0);
     _cpu.mtd      = MTD_ALL;
     _cpu.dr7      = 0x400;
 
@@ -178,10 +177,8 @@ public:
       case MessageHostOp::OP_VIRT_TO_PHYS:
       case MessageHostOp::OP_ALLOC_FROM_GUEST:
       case MessageHostOp::OP_ALLOC_SERVICE_THREAD:
-      case MessageHostOp::OP_REGISTER_SERVICE:
       case MessageHostOp::OP_WAIT_CHILD:
       case MessageHostOp::OP_ALLOC_SERVICE_PORTAL:
-      case MessageHostOp::OP_CREATE_EC4PT:
       default:
 	Logging::panic("%s - unimplemented operation %x", __PRETTY_FUNCTION__, msg.type);
       }
@@ -249,8 +246,13 @@ public:
     if (!_hostmb.bus_hostop.send(msg) || !msg.ptr)
       Logging::panic("%s could not map the first megabyte", __PRETTY_FUNCTION__);
     _mem = msg.ptr;
-    _mb.parse_args("mem pit:0x40,0 scp:0x92,0x61 pcihostbridge:0,0x100,0xcf8 dpci:3,0,0,0,0,0 dio:0x3c0+0x20 dio:0x3b0+0x10 vcpu halifax");
 
+    const char *args[] = {
+        "mem", "pit:0x40,0", "scp:0x92,0x61", "pcihostbridge:0,0x100,0xcf8", "dpci:3,0,0,0,0,0",
+        "dio:0x3c0+0x20", "dio:0x3b0+0x10", "vcpu", "halifax"
+    };
+    for(size_t i = 0; i < sizeof(args) / sizeof(args[0]); ++i)
+        _mb.handle_arg(args[i]);
 
     // initialize PIT0
 
