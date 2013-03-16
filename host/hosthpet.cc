@@ -109,8 +109,9 @@ public:
 	}
       }
     }
-    else
+    else {
       assert(_timerreg->int_route & (1 << _irq));
+    }
 
     // the HV assumes that GSI below 16 are edge triggered
     if (_irq < 16) level = false;
