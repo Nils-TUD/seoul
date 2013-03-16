@@ -19,7 +19,6 @@
 
 #include "nul/motherboard.h"
 #include "host/hostpci.h"
-#include "wvtest.h"
 
 /**
  * A PCI 16550-based serial port driver.
