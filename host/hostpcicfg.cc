@@ -17,7 +17,7 @@
  */
 
 #include "nul/motherboard.h"
-#include "sys/semaphore.h"
+#include "service/semaphore.h"
 
 /**
  * Provide HW PCI config space access by bridging PCI cfg read/write
@@ -28,12 +28,12 @@
  */
 struct PciConfigAccess : public StaticReceiver<PciConfigAccess>
 {
-  static const unsigned BASE = 0xcf8;
-  DBus<MessageHwIOIn>  &_hwioin;
-  DBus<MessageHwIOOut> &_hwioout;
-  Semaphore          _lock;
+  static const unsigned     BASE = 0xcf8;
+  DBus<MessageHwIOIn>       &_hwioin;
+  DBus<MessageHwIOOut>      &_hwioout;
+  SemaphoreGuard::Semaphore _lock;
 
-  PciConfigAccess(DBus<MessageHwIOIn> &hwioin, DBus<MessageHwIOOut> &hwioout, unsigned semcap) : _hwioin(hwioin), _hwioout(hwioout), _lock(Semaphore(semcap)) { _lock.up(); };
+  PciConfigAccess(DBus<MessageHwIOIn> &hwioin, DBus<MessageHwIOOut> &hwioout) : _hwioin(hwioin), _hwioout(hwioout), _lock() {};
   bool  receive(MessageHwPciConfig &msg) {
 
     if ((msg.type == MessagePciConfig::TYPE_PTR) ||
@@ -65,12 +65,9 @@ struct PciConfigAccess : public StaticReceiver<PciConfigAccess>
 PARAM_HANDLER(pcicfg,
 	      "pcicfg - provide HW PCI config space access through IO ports 0xcf8/0xcfc.")
 {
-  MessageHostOp msg0(MessageHostOp::OP_ALLOC_SEMAPHORE, 0UL);
-  check0(!mb.bus_hostop.send(msg0), "%s could not allocate semaphore\n", __PRETTY_FUNCTION__);
-
   MessageHostOp msg1(MessageHostOp::OP_ALLOC_IOIO_REGION,  (PciConfigAccess::BASE << 8) | 3);
   check0(!mb.bus_hostop.send(msg1), "%s could not allocate ioports %x+8\n", __PRETTY_FUNCTION__, PciConfigAccess::BASE);
 
-  PciConfigAccess *dev = new PciConfigAccess(mb.bus_hwioin, mb.bus_hwioout, msg0.value);
+  PciConfigAccess *dev = new PciConfigAccess(mb.bus_hwioin, mb.bus_hwioout);
   mb.bus_hwpcicfg.add(dev, PciConfigAccess::receive_static<MessageHwPciConfig>);
 }
