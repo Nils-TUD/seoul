@@ -19,6 +19,7 @@
 #include "nul/motherboard.h"
 #include "host/hostgenericata.h"
 #include "host/hostpci.h"
+#include "service/memory.h"
 
 
 /**
@@ -348,9 +349,9 @@ class HostAhciPort : public StaticReceiver<HostAhciPort>
     : _regs(regs), _bus_hostop(bus_hostop), _bus_commit(bus_commit), _clock(clock), _disknr(disknr), _max_slots(max_slots), _dmar(dmar), _tag(0)
   {
     // allocate needed datastructures
-    _fis = new(0x1000) unsigned[1024];
-    _cl =  new(0x400)  unsigned[max_slots*CL_DWORDS];
-    _ct =  new(0x400)  unsigned[max_slots*(32+MAX_PRD_COUNT*4)];
+    _fis = new(Aligned(0x1000)) unsigned[1024];
+    _cl =  new(Aligned(0x400))  unsigned[max_slots*CL_DWORDS];
+    _ct =  new(Aligned(0x400))  unsigned[max_slots*(32+MAX_PRD_COUNT*4)];
     Logging::printf("_cl (%p,%p) _ct (%p, %p)\n", _cl, _cl + max_slots*CL_DWORDS, _ct, _ct + max_slots*(128+MAX_PRD_COUNT*16)/4);
   }
 };
