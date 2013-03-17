@@ -5,18 +5,11 @@ Import('env')
 
 myenv = env.Clone()
 
-# git version file
-AlwaysBuild(Command(
-    'version.inc',
-    [],
-    """( git describe --dirty --long --always || echo UNKNOWN ) | sed 's/^\\(.*\\)$/"\\1"/' > $TARGET"""
-))
-
 # instruction emulator
-Precious(env.Command(
-    ["executor/instructions.inc"],
-    ["executor/build_instructions.py"],
-    "$SOURCE > $TARGET"
+myenv.Precious(myenv.Command(
+    'executor/instructions.inc',
+    'executor/build_instructions.py',
+    '$SOURCE > $TARGET'
 ))
 
 # Build register handling functions for Intel 82576vf model
@@ -38,9 +31,14 @@ btype = os.environ.get('NRE_BUILD')
 if btype == 'debug':
     halienv = myenv.Clone()
     halienv.Append(CXXFLAGS = ' -O1 -fno-inline')
-    halifax = halienv.Object('executor/halifax.cc', CPPPATH = [myenv['CPPPATH'], 'include', 'nre/include'])
+    halifax = halienv.Object(
+    	'executor/halifax.cc', CPPPATH = [myenv['CPPPATH'], 'include', 'nre/include', 'executor']
+   	)
 else:
-    halifax = myenv.Object('executor/halifax.cc', CPPPATH = [myenv['CPPPATH'], 'include', 'nre/include'])
+    halifax = myenv.Object(
+    	'executor/halifax.cc', CPPPATH = [myenv['CPPPATH'], 'include', 'nre/include', 'executor']
+    )
+myenv.Depends(halifax, 'executor/instructions.inc')
 
 files = [f for f in Glob('*/*.cc') if
          'executor/halifax.cc' not in str(f) and
