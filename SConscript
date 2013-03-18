@@ -44,7 +44,7 @@ files = [f for f in Glob('*/*.cc') if
          'executor/halifax.cc' not in str(f) and
          'unix/' not in str(f) and 'host/' not in str(f) and
          'model/intel82576vf.cc' not in str(f)]
-files += ['host/hostkeyboard.cc']
+files += ['host/hostkeyboard.cc', 'host/hostio.cc']
 
 lib = myenv.StaticLibrary(
     'libseoul', [files, halifax], CPPPATH = [myenv['CPPPATH'], 'include', 'nre/include']
