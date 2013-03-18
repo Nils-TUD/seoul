@@ -60,6 +60,4 @@ extern Parameter __param_table_start, __param_table_end;
 #define PARAM_DEREF(p)                                                  \
     (*p)
 
-#undef REG
-
 // EOF
