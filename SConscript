@@ -22,8 +22,8 @@ for f in ['mmio', 'pci']:
 
 # turn off these warnings. seoul produces too many of them :(
 # -fno-strict-aliasing is needed e.g. for cpu_move
-myenv.Append(CXXFLAGS = ' -Wno-unused-parameter -Wno-parentheses -fno-strict-aliasing -Wformat=0')
-myenv.Append(CFLAGS = ' -Wno-unused-parameter -Wno-parentheses -fno-strict-aliasing -Wformat=0')
+myenv.Append(CXXFLAGS = ' -Wno-unused-parameter -Wno-parentheses -fno-strict-aliasing -Wformat=0 -DPROFILE')
+myenv.Append(CFLAGS = ' -Wno-unused-parameter -Wno-parentheses -fno-strict-aliasing -Wformat=0 -DPROFILE')
 
 # somehow we have to compile the instructions.inc with at least -O1. otherwise gcc complains that
 # an asm constraint is impossible. strange :/
