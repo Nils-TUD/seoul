@@ -51,3 +51,26 @@ lib = myenv.StaticLibrary(
     'libseoul', [files, halifax], CPPPATH = [myenv['CPPPATH'], 'include', 'nre/include']
 )
 myenv.Install(myenv['LIBPATH'], lib)
+
+
+# now build vancouver
+
+senv = env.Clone()
+
+# use custom linker script (for params and profile-stuff)
+senv['LINKFLAGS'] += ' -Wl,-T,libs/libseoul/nre/linker_' + senv['ARCH'] + '.ld'
+
+# we need to use whole-archive here, because the devices are not used explicitly so that the linker
+# thinks he doesn't need to link them
+senv['LINKFLAGS'] += ' -Wl,--whole-archive -lseoul -Wl,--no-whole-archive'
+
+# use a fixed link address to maximize the space for guest-memory
+linkaddr = '0x60000000' if senv['ARCH'] == 'x86_32' else '0x400000000'
+senv['LINKFLAGS'] += ' -Wl,--section-start=.init=' + linkaddr
+
+prog = senv.NREProgram(
+    senv, 'vancouver', Glob('nre/src/*.cc'),
+    cpppath = ['#libs/libseoul/include', '#libs/libseoul/nre/include'],
+    fixedaddr = True
+)
+senv.Depends(prog, senv['LIBPATH'] + '/libseoul.a')
